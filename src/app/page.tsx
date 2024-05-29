@@ -1,113 +1,169 @@
-import Image from "next/image";
+"use client";
+import axios from "axios";
+import { useEffect, useState } from "react";
 
-export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+const Todos = () => {
+  const [inputText, setInputText] = useState("");
+  const [todos, setTodos] = useState([]);
+
+  const [editMode, setEditMode] = useState(false);
+
+  const getData = async () => {
+    try {
+      const response = await axios("/api/todos");
+      console.log("get response = ", response);
+      setTodos(response?.data?.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const postData = async (data: { desc: string }) => {
+    // const data = {
+    //   desc: "Todo 10",
+    // };
+    try {
+      const response = await axios.post("/api/todos", data);
+      console.log("post response = ", response);
+      getData();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const deleteData = async (id: number) => {
+    try {
+      const response = await axios.delete("/api/todos/" + id.toString());
+      console.log("delete response = ", response);
+      getData();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const editData = async (id: number, data: { desc: string,completed:boolean }) => {
+    try {
+        console.log(data); 
+        
+      const response = await axios.put("/api/todos/" + id.toString(), data);
+      console.log("edit response = ", response);
+      getData();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    getData();
+  }, []);
+
+  const handleSil = (id: number) => {
+    deleteData(id);
+  };
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    postData({
+      desc: inputText,
+    });
+    setInputText("");
+  };
+
+  const [editInput, setEditInput] = useState("");
+  
+  const [todoForEdit, setTodoForEdit] = useState<ITodo>({id: 0,desc:"",completed:false});
+  if (editMode) {
+    return (
+      <div className="flex flex-col items-center gap-8 pt-8 bg-violet-200 pb-32">
+        <div className="text-2xl">Edit Mode</div>
+        <div className="flex gap-4 items-center">
+          <div className="text-lg">Edit desc:</div>
+          <input
+            className="rounded-md shadow-md text-lg px-2 py-1"
+            type="text"
+            placeholder="Enter new desc"
+            value={editInput}
+            onChange={(e) => setEditInput(e.target.value)}
+          />
+        </div>
+        {/* <div className="flex gap-4"> */}
+        {/* <div className="text-lg ">Edit completed:</div>
+          <input type="checkbox" onChange={()=>setEditReady(!editReady)} />
+        </div> */}
+        <div className="">
+          <button
+            className=" text-xl shadow-md bg-blue-600 text-white hover:bg-blue-500 rounded-md px-3 py-1"
+            onClick={() => {
+              editData(todoForEdit?.id, 
+                {desc:editInput,completed:todoForEdit?.completed },
+                );
+              setEditMode(false);
+            }}
+            disabled={!(editInput.length > 0)}
           >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+            Submit
+          </button>
         </div>
       </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+    );
+  }
+  return (
+    <div className="flex flex-col items-center gap-8 pt-8 bg-violet-200 pb-32">
+      <div className="text-2xl">Todo List Next</div>
+      <form className="flex gap-2" onSubmit={handleSubmit}>
+        <input
+          className="text-cl rounded-md  shadow-md px-2 py-1"
+          type="text"
+          placeholder="Enter Todo"
+          name=""
+          id=""
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
         />
+        <button
+          className=" text-xl shadow-md bg-blue-600 text-white hover:bg-blue-500 rounded-md px-3 py-1"
+          type="submit"
+        >
+          Add
+        </button>
+        <button className=" text-xl shadow-md bg-gray-600 text-white hover:bg-gray-500 rounded-md px-3 py-1"
+        onClick={()=>setInputText("")} type="button">
+          Clear
+        </button>
+      </form>
+      <div className="w-5/6 flex flex-col gap-2">
+        {todos?.map(
+          (todo: { id: number; desc: string; completed: boolean }, index) => {
+            return (
+              <div
+                key={index}
+                className="bg-violet-500 flex justify-between items-center p-2 rounded-lg shadow-lg"
+              >
+                <div className=" flex gap-2">
+                  <input type="checkbox" checked={todo?.completed} onChange={()=>editData(todo?.id,{...todo,completed:!todo.completed})} />
+                  <div className="text-lg text-white">{todo?.desc}</div>
+                </div>
+                <div className=" flex gap-2 items-center">
+                  <button
+                    className=" text-md shadow-md bg-green-600 text-white hover:bg-green-500 rounded-md px-2 py-1"
+                    onClick={() => {
+                      setEditMode(true);
+                      setTodoForEdit({...todo})
+                    }}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className=" text-md shadow-md bg-red-600 text-white hover:bg-red-500 rounded-md px-2 py-1"
+                    onClick={() => handleSil(todo?.id)}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            );
+          }
+        )}
       </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+    </div>
   );
-}
+};
+
+export default Todos;
