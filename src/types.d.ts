@@ -3,7 +3,7 @@
 
 
 interface ITodo {
-  id: Number;
+  id: number;
   desc: string;
   completed: boolean;
 }
