@@ -58,7 +58,7 @@ const Todos = () => {
   const handleSil = (id: number) => {
     deleteData(id);
   };
-  const handleSubmit = (e:React.FormEvent<HTMLInputElement>) => {
+  const handleSubmit = (e:React.FormEvent<HTMLFormElement>) => {
     console.log(e);
     e.preventDefault()
     postData({
