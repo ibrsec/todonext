@@ -58,7 +58,8 @@ const Todos = () => {
   const handleSil = (id: number) => {
     deleteData(id);
   };
-  const handleSubmit = (e) => {
+  const handleSubmit = (e:React.FormEvent<HTMLInputElement>) => {
+    console.log(e);
     e.preventDefault()
     postData({
       desc: inputText,
@@ -95,6 +96,7 @@ const Todos = () => {
                 {desc:editInput,completed:todoForEdit?.completed },
                 );
               setEditMode(false);
+              setEditInput("");
             }}
             disabled={!(editInput.length > 0)}
           >
